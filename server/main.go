@@ -45,12 +45,10 @@ func main() {
 
 		fileData := processRepositoryFiles(tempDir)
 
-		// return c.JSON(fiber.Map{
-		// 	"message": "Repo processed successfully",
-		// 	"data":    fileData,
-		// })
-
-        return nil
+		return c.JSON(fiber.Map{
+			"message": "Repo processed successfully",
+			"data":    fileData,
+		})
 	})
 
     
