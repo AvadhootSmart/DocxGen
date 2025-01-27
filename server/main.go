@@ -1,20 +1,39 @@
 package main
 
 import (
+	"encoding/json"
 	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
 
+	"docxGen/handlers"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/joho/godotenv"
 	"gopkg.in/src-d/go-git.v4"
 )
 
 func main() {
+
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    var GEMINI_API_KEY string = os.Getenv("GEMINI_API_KEY")
+
 	app := fiber.New()
 
 	app.Use(logger.New())
+
+
+
+	app.Get("/", func(c *fiber.Ctx) error {
+		c.Redirect("/health")
+		return nil
+	})
 
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("OK")
@@ -45,16 +64,39 @@ func main() {
 
 		fileData := processRepositoryFiles(tempDir)
 
+		fileJsonData, err := json.Marshal(fileData)
+		if err != nil {
+            log.Printf("Couldnt convert to json: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": err,
+			})
+
+		}
+
+        inputString := string(fileJsonData)
+
+		docx, err := handlers.GenerateDocx(inputString, GEMINI_API_KEY)
+		if err != nil {
+            return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+                "error": "Error generating docx",
+            })
+		}
+
+        log.Println("Response: %v", docx)
+
 		return c.JSON(fiber.Map{
-			"message": "Repo processed successfully",
-			"data":    fileData,
+			"message": "Success",
+			"data":    docx,
 		})
+
+        // return c.JSON(fiber.Map{
+        //     "message" : "Success",
+        //     "data":     fileData,
+        // })
 	})
 
-    
-
-	log.Println("Server started on http://localhost:3000")
-	if err := app.Listen(":3000"); err != nil {
+	log.Println("Server started on http://localhost:6969")
+	if err := app.Listen(":6969"); err != nil {
 		log.Fatal("Error starting server, %v", err)
 	}
 }
@@ -76,6 +118,7 @@ var excludedExtensions = map[string]bool{
 	".svg":  true,
 	".xml":  true,
 	".yaml": true,
+    ".html": true,
 }
 
 var excludedFileNames = map[string]bool{
@@ -83,6 +126,7 @@ var excludedFileNames = map[string]bool{
 	"Dockerfile":        true,
 	".gitignore":        true,
 	"package-lock.json": true,
+    "index.html":        true,
 }
 
 func processRepositoryFiles(basePath string) map[string][]string {
