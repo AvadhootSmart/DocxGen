@@ -17,12 +17,20 @@ import (
 
 func main() {
 
-	err := godotenv.Load()
+	err := godotenv.Load("../.env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
 	var GEMINI_API_KEY string = os.Getenv("GEMINI_API_KEY")
+	if GEMINI_API_KEY == "" {
+		log.Fatal("GEMINI_API_KEY not set")
+	}
+
+	PORT := os.Getenv("PORT")
+	if PORT == "" {
+		PORT = "3000"
+	}
 
 	app := fiber.New()
 
@@ -100,8 +108,8 @@ func main() {
 		// })
 	})
 
-	log.Println("Server started on http://localhost:6969")
-	if err := app.Listen(":6969"); err != nil {
+	log.Printf("Server started on http://localhost:%s", PORT)
+	if err := app.Listen(":" + PORT); err != nil {
 		log.Fatal("Error starting server, %v", err)
 	}
 }
