@@ -45,8 +45,7 @@ func handler() http.HandlerFunc {
 	app.Use(logger.New())
 
 	app.Get("/", func(c *fiber.Ctx) error {
-		c.Redirect("/health")
-		return nil
+		return c.SendString("Backend Running successfully..")
 	})
 
 	app.Get("/health", func(c *fiber.Ctx) error {
@@ -121,7 +120,7 @@ func handler() http.HandlerFunc {
 	// 	log.Fatal("Error starting server, %v", err)
 	// }
 
-    return adaptor.FiberApp(app)
+	return adaptor.FiberApp(app)
 }
 
 func cloneRepository(url, destination string) error {
