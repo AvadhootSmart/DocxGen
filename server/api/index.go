@@ -1,21 +1,29 @@
-package main
+package handler
 
 import (
 	"encoding/json"
 	"io/fs"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 
 	"docxGen/handlers"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/joho/godotenv"
 	"gopkg.in/src-d/go-git.v4"
 )
 
-func main() {
+func Handler(w http.ResponseWriter, r *http.Request) {
+	r.RequestURI = r.URL.String()
+
+	handler().ServeHTTP(w, r)
+}
+
+func handler() http.HandlerFunc {
 
 	err := godotenv.Load("../.env")
 	if err != nil {
@@ -108,10 +116,12 @@ func main() {
 		// })
 	})
 
-	log.Printf("Server started on http://localhost:%s", PORT)
-	if err := app.Listen(":" + PORT); err != nil {
-		log.Fatal("Error starting server, %v", err)
-	}
+	// log.Printf("Server started on http://localhost:%s", PORT)
+	// if err := app.Listen(":" + PORT); err != nil {
+	// 	log.Fatal("Error starting server, %v", err)
+	// }
+
+    return adaptor.FiberApp(app)
 }
 
 func cloneRepository(url, destination string) error {
