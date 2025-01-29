@@ -17,18 +17,16 @@ import (
 
 func main() {
 
-    err := godotenv.Load()
-    if err != nil {
-        log.Fatal("Error loading .env file")
-    }
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-    var GEMINI_API_KEY string = os.Getenv("GEMINI_API_KEY")
+	var GEMINI_API_KEY string = os.Getenv("GEMINI_API_KEY")
 
 	app := fiber.New()
 
 	app.Use(logger.New())
-
-
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		c.Redirect("/health")
@@ -47,6 +45,7 @@ func main() {
 
 		req := new(Request)
 		if err := c.BodyParser(req); err != nil {
+			log.Println("Error parsing request: %v", err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "Invalid Request payload",
 			})
@@ -57,8 +56,10 @@ func main() {
 		defer os.RemoveAll(tempDir) //Cleanup
 
 		if err := cloneRepository(req.RepoURL, tempDir); err != nil {
+			log.Println("Error cloning repo: %v", err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err,
+				"error":   err.Error(),
+				"message": "Error cloning the repository",
 			})
 		}
 
@@ -66,33 +67,37 @@ func main() {
 
 		fileJsonData, err := json.Marshal(fileData)
 		if err != nil {
-            log.Printf("Couldnt convert to json: %v", err)
+			log.Printf("Couldnt convert to json: %v", err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err,
+				"error":   err.Error(),
+				"message": "Error converting to json",
 			})
 
 		}
 
-        inputString := string(fileJsonData)
+		inputString := string(fileJsonData)
 
 		docx, err := handlers.GenerateDocx(inputString, GEMINI_API_KEY)
 		if err != nil {
-            return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-                "error": "Error generating docx",
-            })
+			log.Println("Error generating docx: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error":   err.Error(),
+				"message": "Error generating docx",
+			})
 		}
 
-        log.Println("Response: %v", docx)
+		log.Println("Response: %v", docx)
+		// log.Println("Response: %v", inputString)
 
 		return c.JSON(fiber.Map{
 			"message": "Success",
 			"data":    docx,
 		})
 
-        // return c.JSON(fiber.Map{
-        //     "message" : "Success",
-        //     "data":     fileData,
-        // })
+		// return c.JSON(fiber.Map{
+		// 	"message": "Success",
+		// 	"data":    fileData,
+		// })
 	})
 
 	log.Println("Server started on http://localhost:6969")
@@ -109,24 +114,121 @@ func cloneRepository(url, destination string) error {
 	return err
 }
 
+// var excludedExtensions = map[string]bool{
+// 	".exe":  true,
+// 	".png":  true,
+// 	".jpg":  true,
+// 	".jpeg": true,
+// 	".gif":  true,
+// 	".svg":  true,
+// 	".xml":  true,
+// 	".yaml": true,
+// 	".html": true,
+// 	".md":   true,
+// 	".mov":  true,
+// 	".ico":  true,
+//     ".ttf":  true,
+//     ".woff": true,
+//     ".woff2": true,
+//     ".eot": true,
+//     ".zip": true,
+//     ".mp4": true,
+//     ".mp3": true,
+//     ".tar": true,
+//     ".gz": true,
+//     ".rar": true,
+//     ".7z": true,
+// }
+
+//	var excludedFileNames = map[string]bool{
+//		"LICENSE":           true,
+//		"Dockerfile":        true,
+//		".gitignore":        true,
+//		"package-lock.json": true,
+//		"index.html":        true,
+//	}
+
 var excludedExtensions = map[string]bool{
-	".exe":  true,
+	// Binary and Executable Files
+	".exe": true,
+	".dll": true,
+	".so":  true,
+	".bin": true,
+	".o":   true,
+	".out": true,
+
+	// Media Files
 	".png":  true,
 	".jpg":  true,
 	".jpeg": true,
 	".gif":  true,
 	".svg":  true,
+	".ico":  true,
+	".webp": true,
+	".bmp":  true,
+
+	// Archive and Compressed Files
+	".zip": true,
+	".tar": true,
+	".gz":  true,
+	".bz2": true,
+	".7z":  true,
+	".rar": true,
+
+	// Documentation and Markup
+	".html": true,
 	".xml":  true,
 	".yaml": true,
-    ".html": true,
+	".yml":  true,
+	".md":   true,
+	".rst":  true,
+	".txt":  true,
+
+	// System and Metadata
+	".DS_Store": true, // macOS
+	".log":      true,
+	".ini":      true,
+	".cfg":      true,
+	".conf":     true,
+
+	// Fonts and Misc
+	".ttf":  true,
+	".woff": true,
+	".eot":  true,
+	".otf":  true,
+	".mov":  true,
+	".mp4":  true,
+	".mp3":  true,
 }
 
 var excludedFileNames = map[string]bool{
-	"LICENSE":           true,
-	"Dockerfile":        true,
-	".gitignore":        true,
+	"LICENSE":         true,
+	"README.md":       true,
+	"README.txt":      true,
+	"CONTRIBUTING.md": true,
+	".gitignore":      true,
+	".gitattributes":  true,
+
+	// CI/CD and Build Files
+	".gitlab-ci.yml": true,
+	"Jenkinsfile":    true,
+	"Makefile":       true,
+
+	// Lock and Dependency Files
 	"package-lock.json": true,
-    "index.html":        true,
+	"yarn.lock":         true,
+	"pnpm-lock.yaml":    true,
+	"composer.lock":     true,
+	"requirements.txt":  true,
+	"Pipfile.lock":      true,
+
+	// Environment and Secrets
+	".env": true,
+
+	// Miscellaneous
+	"Dockerfile": true,
+	"Thumbs.db":  true, // Windows
+	".DS_Store":  true, // macOS
 }
 
 func processRepositoryFiles(basePath string) map[string][]string {
@@ -171,6 +273,8 @@ func processRepositoryFiles(basePath string) map[string][]string {
 
 		return nil
 	})
+
+	log.Printf("fileData processed successfully")
 
 	return fileData
 }
