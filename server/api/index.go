@@ -13,9 +13,32 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 	"gopkg.in/src-d/go-git.v4"
 )
+
+type Config struct {
+	GEMINI_API_KEY string
+	PORT           string
+}
+
+func LoadConfig() *Config {
+	config := &Config{
+		GEMINI_API_KEY: os.Getenv("GEMINI_API_KEY"),
+		PORT:           os.Getenv("PORT"),
+	}
+
+	if config.PORT == "" {
+		config.PORT = "3000"
+	}
+
+	if config.GEMINI_API_KEY == "" {
+		log.Fatal("GEMINI_API_KEY not set")
+	}
+
+	return config
+
+}
 
 func Handler(w http.ResponseWriter, r *http.Request) {
 	r.RequestURI = r.URL.String()
@@ -25,20 +48,26 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 func handler() http.HandlerFunc {
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	config := LoadConfig()
+	if config == nil {
+		log.Fatal("Error accessing env variables")
+
 	}
 
-	var GEMINI_API_KEY string = os.Getenv("GEMINI_API_KEY")
-	if GEMINI_API_KEY == "" {
-		log.Fatal("GEMINI_API_KEY not set")
-	}
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	log.Fatal("Error loading .env file")
+	// }
 
-	PORT := os.Getenv("PORT")
-	if PORT == "" {
-		PORT = "3000"
-	}
+	// var GEMINI_API_KEY string = os.Getenv("GEMINI_API_KEY")
+	// if GEMINI_API_KEY == "" {
+	// 	log.Fatal("GEMINI_API_KEY not set")
+	// }
+
+	// PORT := os.Getenv("PORT")
+	// if PORT == "" {
+	// 	PORT = "3000"
+	// }
 
 	app := fiber.New()
 
@@ -91,6 +120,8 @@ func handler() http.HandlerFunc {
 		}
 
 		inputString := string(fileJsonData)
+
+		GEMINI_API_KEY := config.GEMINI_API_KEY
 
 		docx, err := handlers.GenerateDocx(inputString, GEMINI_API_KEY)
 		if err != nil {
