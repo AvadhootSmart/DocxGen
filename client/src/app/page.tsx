@@ -1,7 +1,7 @@
 "use client";
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Markdown from "react-markdown";
 import { motion as m } from "framer-motion";
 import { DotPattern } from "@/components/ui/dot-pattern";
