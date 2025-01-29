@@ -12,7 +12,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+
 	// "github.com/joho/godotenv"
 	"gopkg.in/src-d/go-git.v4"
 )
@@ -72,6 +74,11 @@ func handler() http.HandlerFunc {
 	app := fiber.New()
 
 	app.Use(logger.New())
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "https://docxgen.vercel.app",
+		AllowMethods: "GET,POST,PUT,DELETE",
+        AllowHeaders: "Origin, Content-Type, Accept",
+	}))
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Backend Running successfully..")

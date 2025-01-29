@@ -1,7 +1,7 @@
 "use client";
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Markdown from "react-markdown";
 import { motion as m } from "framer-motion";
 import { DotPattern } from "@/components/ui/dot-pattern";
@@ -20,9 +20,12 @@ export default function Home() {
 
     const fetchData = async () => {
         try {
-            const response = await axios.post("http://localhost:6969/process-repo", {
-                repo_url: url,
-            });
+            const response = await axios.post(
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/process-repo`,
+                {
+                    repo_url: url,
+                },
+            );
 
             setMarkdown(response.data.data);
             setLoading(false);
@@ -43,6 +46,10 @@ export default function Home() {
         }
         fetchData();
     };
+
+    useEffect(() => {
+        console.log(process.env.NEXT_PUBLIC_BACKEND_URL);
+    }, []);
 
     return (
         <>
