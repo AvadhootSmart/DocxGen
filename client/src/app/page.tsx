@@ -47,7 +47,6 @@ export default function Home() {
         fetchData();
     };
 
-
     return (
         <>
             <div className="w-full min-h-screen flex flex-col justify-center bg-black font-Poppins items-center lg:px-4 relative overflow-x-hidden">
