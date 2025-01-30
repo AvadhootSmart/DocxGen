@@ -77,7 +77,7 @@ func handler() http.HandlerFunc {
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "https://docxgen.vercel.app",
 		AllowMethods: "GET,POST,PUT,DELETE",
-        AllowHeaders: "Origin, Content-Type, Accept",
+		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
 
 	app.Get("/", func(c *fiber.Ctx) error {
@@ -103,7 +103,7 @@ func handler() http.HandlerFunc {
 		}
 
 		//Cloning and processing repo
-		tempDir := "./tempRepo"
+		tempDir := "/tmp/repo"
 		defer os.RemoveAll(tempDir) //Cleanup
 
 		if err := cloneRepository(req.RepoURL, tempDir); err != nil {
