@@ -1,0 +1,54 @@
+stash.md
+# Binary files
+*.exe
+*.dll
+*.so
+*.dylib
+*.bin
+*.out
+
+# Generated executables
+/build/
+fiber-app # Replace with the name of your app's binary if needed
+
+# Dependencies
+/vendor/
+
+# Logs
+*.log
+
+# IDE files (update based on your editor)
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Go-specific
+*.test
+*.prof
+*.cover
+*.tmp
+
+# Air configuration and temporary files
+.air.toml # If you have a local-only Air configuration
+tmp/
+
+# Environment and configuration files
+.env
+.env.*
+*.local
+
+# Modules and caches
+/go.sum
+/go.sum.old
+/go.mod.old
+
+# Air generated folders (if any)
+air/
+
+# Test artifacts
+coverage.out
