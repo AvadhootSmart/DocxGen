@@ -6,9 +6,8 @@ import Markdown from "react-markdown";
 import { motion as m } from "framer-motion";
 import { DotPattern } from "@/components/ui/dot-pattern";
 import { cn } from "@/lib/utils";
-import { LucideClipboard, LucideGithub } from "lucide-react";
+import { LucideClipboard } from "lucide-react";
 import { IconBrandGithub } from "@tabler/icons-react";
-import { MultiStepLoader } from "@/components/ui/multi-step-loader";
 import { StepLoader } from "@/components/myComponents/Loader";
 
 export default function Home() {
