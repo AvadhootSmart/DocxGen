@@ -10,6 +10,7 @@ import (
 	"docxGen/handlers"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/joho/godotenv"
 	"gopkg.in/src-d/go-git.v4"
@@ -17,18 +18,24 @@ import (
 
 func main() {
 
-    err := godotenv.Load()
-    if err != nil {
-        log.Fatal("Error loading .env file")
-    }
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-    var GEMINI_API_KEY string = os.Getenv("GEMINI_API_KEY")
+	var GEMINI_API_KEY string = os.Getenv("GEMINI_API_KEY")
 
 	app := fiber.New()
 
 	app.Use(logger.New())
 
-
+	var CLIENT_URL string = os.Getenv("DEV_URL")
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     CLIENT_URL,
+		AllowMethods:     "GET,POST,PUT,DELETE",
+		AllowHeaders:     "Origin, Content-Type, Accept",
+		AllowCredentials: true,
+	}))
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		c.Redirect("/health")
@@ -66,33 +73,33 @@ func main() {
 
 		fileJsonData, err := json.Marshal(fileData)
 		if err != nil {
-            log.Printf("Couldnt convert to json: %v", err)
+			log.Printf("Couldnt convert to json: %v", err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": err,
 			})
 
 		}
 
-        inputString := string(fileJsonData)
+		inputString := string(fileJsonData)
 
 		docx, err := handlers.GenerateDocx(inputString, GEMINI_API_KEY)
 		if err != nil {
-            return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-                "error": "Error generating docx",
-            })
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Error generating docx",
+			})
 		}
 
-        log.Println("Response: %v", docx)
+		log.Println("Response: %v", docx)
 
 		return c.JSON(fiber.Map{
 			"message": "Success",
 			"data":    docx,
 		})
 
-        // return c.JSON(fiber.Map{
-        //     "message" : "Success",
-        //     "data":     fileData,
-        // })
+		// return c.JSON(fiber.Map{
+		//     "message" : "Success",
+		//     "data":     fileData,
+		// })
 	})
 
 	log.Println("Server started on http://localhost:6969")
@@ -118,7 +125,7 @@ var excludedExtensions = map[string]bool{
 	".svg":  true,
 	".xml":  true,
 	".yaml": true,
-    ".html": true,
+	".html": true,
 }
 
 var excludedFileNames = map[string]bool{
@@ -126,7 +133,7 @@ var excludedFileNames = map[string]bool{
 	"Dockerfile":        true,
 	".gitignore":        true,
 	"package-lock.json": true,
-    "index.html":        true,
+	"index.html":        true,
 }
 
 func processRepositoryFiles(basePath string) map[string][]string {
